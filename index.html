@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introduction to Artificial Intelligence</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --card: #ffffff;
+      --accent: #6366f1;
+      --accent-light: #818cf8;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --correct: #22c55e;
+      --wrong: #ef4444;
+      --radius: 12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 2rem; height: 60px;
+    }
+    nav .logo { font-weight: 700; font-size: 1.1rem; color: var(--accent-light); }
+    nav ul { list-style: none; display: flex; gap: 1.5rem; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+    nav a:hover { color: var(--text); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.18) 0%, transparent 70%);
+    }
+    #hero .badge {
+      display: inline-block;
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.35);
+      color: var(--accent-light);
+      font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em;
+      padding: 0.3rem 0.9rem; border-radius: 999px; margin-bottom: 1.5rem;
+      text-transform: uppercase;
+    }
+    #hero h1 { font-size: clamp(2rem, 6vw, 4rem); font-weight: 800; line-height: 1.15; max-width: 700px; }
+    #hero h1 span { color: var(--accent-light); }
+    #hero p { color: var(--muted); font-size: 1.1rem; max-width: 520px; margin: 1.25rem auto 2.5rem; }
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      padding: 0.8rem 2rem; border-radius: 999px;
+      font-weight: 600; font-size: 1rem;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn:hover { background: var(--accent-light); transform: translateY(-2px); }
+
+    /* ── SECTIONS ── */
+    section { padding: 5rem 2rem; }
+    .section-header { text-align: center; margin-bottom: 3rem; }
+    .section-header h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 700; }
+    .section-header p { color: var(--muted); margin-top: 0.6rem; max-width: 520px; margin-inline: auto; }
+
+    /* ── CONCEPT CARDS ── */
+    #concepts { background: var(--surface); }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      max-width: 1000px; margin-inline: auto;
+    }
+    .card {
+      background: var(--bg);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+      padding: 2rem;
+      transition: transform 0.25s, border-color 0.25s;
+    }
+    .card:hover { transform: translateY(-4px); border-color: rgba(99,102,241,0.45); }
+    .card .icon { font-size: 2.2rem; margin-bottom: 1rem; }
+    .card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .card p { color: var(--muted); font-size: 0.95rem; }
+
+    /* ── QUIZ ── */
+    #quiz { max-width: 720px; margin-inline: auto; }
+    #quiz .section-header { text-align: center; }
+    .question-block { margin-bottom: 2rem; }
+    .question-block p { font-weight: 600; margin-bottom: 0.75rem; }
+    .options { display: grid; gap: 0.5rem; }
+    .option {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.15s, border-color 0.15s;
+      text-align: left; color: var(--text);
+    }
+    .option:hover:not(:disabled) { background: rgba(99,102,241,0.15); border-color: var(--accent); }
+    .option.correct { background: rgba(34,197,94,0.15); border-color: var(--correct); color: var(--correct); }
+    .option.wrong   { background: rgba(239,68,68,0.12);  border-color: var(--wrong);  color: var(--wrong); }
+    .option:disabled { cursor: default; }
+    #quiz-result {
+      display: none; text-align: center;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 2rem; margin-top: 2rem;
+    }
+    #quiz-result h3 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    #quiz-result p { color: var(--muted); }
+    #retry-btn {
+      margin-top: 1.25rem;
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent-light);
+      padding: 0.6rem 1.5rem; border-radius: 999px;
+      cursor: pointer; font-size: 0.95rem;
+      transition: background 0.2s;
+    }
+    #retry-btn:hover { background: rgba(99,102,241,0.15); }
+
+    /* ── TIMELINE ── */
+    #timeline { background: var(--surface); }
+    .tl-wrap { max-width: 800px; margin-inline: auto; position: relative; }
+    .tl-wrap::before {
+      content: "";
+      position: absolute; left: 50%; top: 0; bottom: 0;
+      width: 2px; background: rgba(99,102,241,0.3);
+      transform: translateX(-50%);
+    }
+    .tl-item {
+      display: flex; gap: 2rem; margin-bottom: 2.5rem; position: relative;
+    }
+    .tl-item:nth-child(odd)  { flex-direction: row-reverse; }
+    .tl-dot {
+      position: absolute; left: 50%; top: 0.4rem;
+      width: 14px; height: 14px;
+      background: var(--accent); border-radius: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.25);
+    }
+    .tl-content {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.4rem;
+    }
+    .tl-item:nth-child(odd)  .tl-content { margin-left: calc(50% + 1.5rem); }
+    .tl-item:nth-child(even) .tl-content { margin-right: calc(50% + 1.5rem); }
+    .tl-content .year { font-size: 0.8rem; font-weight: 700; color: var(--accent-light); margin-bottom: 0.25rem; }
+    .tl-content h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.2rem; }
+    .tl-content p { font-size: 0.88rem; color: var(--muted); }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center; padding: 2rem;
+      color: var(--muted); font-size: 0.85rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ── FADE-IN ANIMATION ── */
+    .fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.55s ease, transform 0.55s ease; }
+    .fade-in.visible { opacity: 1; transform: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      nav ul { display: none; }
+      .tl-wrap::before { left: 16px; }
+      .tl-dot { left: 16px; }
+      .tl-item, .tl-item:nth-child(odd) { flex-direction: column; }
+      .tl-item:nth-child(odd)  .tl-content,
+      .tl-item:nth-child(even) .tl-content { margin: 0 0 0 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="logo">AI Learn</span>
+  <ul>
+    <li><a href="#concepts">Concepts</a></li>
+    <li><a href="#quiz-section">Quiz</a></li>
+    <li><a href="#timeline">Timeline</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="badge">Free &amp; Open Learning</div>
+  <h1>Understand <span>Artificial Intelligence</span> from the ground up</h1>
+  <p>A beginner-friendly guide to the ideas, history, and breakthroughs shaping the age of AI.</p>
+  <a href="#concepts" class="btn">Start Learning</a>
+</section>
+
+<!-- CONCEPTS -->
+<section id="concepts">
+  <div class="section-header fade-in">
+    <h2>Core AI Concepts</h2>
+    <p>Three foundational ideas that power modern AI systems.</p>
+  </div>
+  <div class="cards">
+    <div class="card fade-in">
+      <div class="icon">🧠</div>
+      <h3>Machine Learning</h3>
+      <p>Instead of following hand-written rules, ML systems discover patterns from data — improving automatically with experience.</p>
+    </div>
+    <div class="card fade-in">
+      <div class="icon">🕸️</div>
+      <h3>Neural Networks</h3>
+      <p>Inspired by the brain, neural networks stack layers of simple units. Deeper stacks unlock the power of "deep learning."</p>
+    </div>
+    <div class="card fade-in">
+      <div class="icon">💬</div>
+      <h3>Natural Language Processing</h3>
+      <p>NLP lets computers read, interpret, and generate human language — the technology behind chatbots and translation.</p>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz-section">
+  <div class="section-header fade-in">
+    <h2>Test Your Knowledge</h2>
+    <p>Five quick questions. Get instant feedback on each answer.</p>
+  </div>
+  <div id="quiz">
+    <!-- questions injected by JS -->
+  </div>
+  <div id="quiz-result">
+    <h3 id="result-title"></h3>
+    <p id="result-msg"></p>
+    <button id="retry-btn">Try Again</button>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section id="timeline">
+  <div class="section-header fade-in">
+    <h2>AI Through the Ages</h2>
+    <p>Key milestones that shaped the field of artificial intelligence.</p>
+  </div>
+  <div class="tl-wrap">
+    <div class="tl-item fade-in">
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <div class="year">1950</div>
+        <h4>The Turing Test</h4>
+        <p>Alan Turing proposes a test of machine intelligence: can a computer fool a human into thinking it is one?</p>
+      </div>
+    </div>
+    <div class="tl-item fade-in">
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <div class="year">1956</div>
+        <h4>"Artificial Intelligence" Coined</h4>
+        <p>John McCarthy organises the Dartmouth Workshop, officially naming the field and launching academic AI research.</p>
+      </div>
+    </div>
+    <div class="tl-item fade-in">
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <div class="year">1997</div>
+        <h4>Deep Blue Defeats Kasparov</h4>
+        <p>IBM's chess-playing computer beats the reigning world champion, marking a milestone in AI strategic reasoning.</p>
+      </div>
+    </div>
+    <div class="tl-item fade-in">
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <div class="year">2012</div>
+        <h4>Deep Learning Breakthrough</h4>
+        <p>AlexNet wins ImageNet by a huge margin, proving deep convolutional networks can outperform hand-crafted vision systems.</p>
+      </div>
+    </div>
+    <div class="tl-item fade-in">
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <div class="year">2022</div>
+        <h4>ChatGPT Launches</h4>
+        <p>OpenAI's conversational AI reaches 100 million users in two months, bringing large language models into everyday life.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  Built for learning &mdash; AI Learn &copy; 2026
+</footer>
+
+<script>
+  // ── QUIZ DATA ──
+  const questions = [
+    {
+      q: "What does 'ML' stand for in the context of AI?",
+      options: ["Machine Logic", "Machine Learning", "Multi-Layer", "Model Library"],
+      answer: 1
+    },
+    {
+      q: "Which AI concept is inspired by the structure of the human brain?",
+      options: ["Decision Trees", "Rule-Based Systems", "Neural Networks", "Genetic Algorithms"],
+      answer: 2
+    },
+    {
+      q: "NLP stands for Natural Language ___.",
+      options: ["Programming", "Processing", "Protocol", "Parsing"],
+      answer: 1
+    },
+    {
+      q: "In what year did IBM's Deep Blue defeat chess champion Garry Kasparov?",
+      options: ["1989", "1997", "2004", "2011"],
+      answer: 1
+    },
+    {
+      q: "Which term describes AI systems that improve automatically by learning from data?",
+      options: ["Expert Systems", "Machine Learning", "Symbolic AI", "Hard Coding"],
+      answer: 1
+    }
+  ];
+
+  let answered = 0;
+  let score = 0;
+
+  function buildQuiz() {
+    const container = document.getElementById("quiz");
+    container.innerHTML = "";
+    answered = 0;
+    score = 0;
+    document.getElementById("quiz-result").style.display = "none";
+
+    questions.forEach((q, qi) => {
+      const block = document.createElement("div");
+      block.className = "question-block fade-in";
+
+      const qText = document.createElement("p");
+      qText.textContent = `${qi + 1}. ${q.q}`;
+      block.appendChild(qText);
+
+      const opts = document.createElement("div");
+      opts.className = "options";
+
+      q.options.forEach((opt, oi) => {
+        const btn = document.createElement("button");
+        btn.className = "option";
+        btn.textContent = opt;
+        btn.addEventListener("click", () => handleAnswer(qi, oi, block));
+        opts.appendChild(btn);
+      });
+
+      block.appendChild(opts);
+      container.appendChild(block);
+    });
+
+    // re-observe newly created fade-in elements
+    document.querySelectorAll(".fade-in").forEach(el => observer.observe(el));
+  }
+
+  function handleAnswer(qi, selected, block) {
+    const correct = questions[qi].answer;
+    const buttons = block.querySelectorAll(".option");
+    buttons.forEach((btn, i) => {
+      btn.disabled = true;
+      if (i === correct) btn.classList.add("correct");
+      else if (i === selected && selected !== correct) btn.classList.add("wrong");
+    });
+    if (selected === correct) score++;
+    answered++;
+    if (answered === questions.length) showResult();
+  }
+
+  function showResult() {
+    const result = document.getElementById("quiz-result");
+    const title  = document.getElementById("result-title");
+    const msg    = document.getElementById("result-msg");
+    result.style.display = "block";
+    title.textContent = `You scored ${score} / ${questions.length}`;
+    if (score === questions.length) {
+      msg.textContent = "Perfect score! You're an AI expert in the making.";
+    } else if (score >= 3) {
+      msg.textContent = "Great work! Review the sections above to fill in any gaps.";
+    } else {
+      msg.textContent = "Keep reading — every concept becomes clearer with practice.";
+    }
+    result.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  document.getElementById("retry-btn").addEventListener("click", buildQuiz);
+
+  // ── FADE-IN ON SCROLL ──
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("visible"); observer.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll(".fade-in").forEach(el => observer.observe(el));
+
+  // ── INIT ──
+  buildQuiz();
+</script>
+</body>
+</html>
